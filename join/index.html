@@ -75,15 +75,16 @@
       border-radius: 12px;
       color: var(--yellow);
       font-family: 'Sora', monospace;
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 800;
       letter-spacing: 4px;
+      cursor: pointer;
     }
     p {
       color: var(--text-dim);
       font-size: 14px;
       line-height: 1.5;
-      margin: 8px 0 24px;
+      margin: 8px 0 20px;
     }
     .btn-play {
       display: inline-flex;
@@ -100,16 +101,28 @@
       text-decoration: none;
       box-shadow: 0 10px 25px -5px rgba(46, 204, 113, 0.5);
       transition: transform 0.15s ease;
+      cursor: pointer;
+      border: none;
     }
     .btn-play:active {
       transform: scale(0.98);
     }
+    .btn-secondary {
+      display: inline-block;
+      margin-top: 12px;
+      color: var(--blue);
+      font-size: 13px;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
     .status-toast {
-      font-size: 12px;
+      font-size: 13px;
       color: #34E08C;
       font-weight: 600;
       margin-top: 14px;
-      min-height: 18px;
+      min-height: 20px;
     }
     .instructions {
       margin-top: 24px;
@@ -134,22 +147,28 @@
     <h1>DUO CARDS</h1>
     <div id="roomSection" style="display: none;">
       <p style="margin-bottom: 4px;">You've been invited to join Room:</p>
-      <div class="room-badge" id="roomCodeDisplay">----</div>
+      <div class="room-badge" id="roomCodeDisplay" onclick="copyRoomCode()" title="Click to copy">----</div>
+      <div style="font-size: 11px; color: var(--text-dim); margin-top: -10px; margin-bottom: 16px;">(Tap code to copy)</div>
     </div>
     <p id="statusMsg">Connecting to game room...</p>
 
-    <a id="playStoreBtn" class="btn-play" href="https://play.google.com/store/apps/details?id=in.factictionary.uno_card_game">
-      <span>▶ PLAY NOW ON ANDROID</span>
+    <a id="launchBtn" class="btn-play" href="#" onclick="handleLaunchClick(event)">
+      <span>▶ OPEN DUO CARDS</span>
     </a>
+
+    <div>
+      <a id="playStoreLink" class="btn-secondary" href="https://play.google.com/store/apps/details?id=in.factictionary.uno_card_game">
+        Don't have the app? Get on Google Play
+      </a>
+    </div>
 
     <div class="status-toast" id="clipboardToast"></div>
 
     <div class="instructions">
-      <strong>How to play:</strong>
+      <strong>How to join:</strong>
       <ol>
-        <li>Install or open <strong>DUO Cards</strong> from Google Play.</li>
-        <li>Tap <strong>JOIN ROOM</strong> on the home screen.</li>
-        <li>Paste the room code above to start!</li>
+        <li>If installed, tapping above opens <strong>DUO Cards</strong> directly.</li>
+        <li>Your room code is auto-copied to join immediately!</li>
       </ol>
     </div>
   </div>
@@ -158,31 +177,64 @@
     const params = new URLSearchParams(window.location.search);
     const code = (params.get('code') || '').trim().toUpperCase();
 
-    const playStoreBase = "https://play.google.com/store/apps/details?id=in.factictionary.uno_card_game";
-    let finalUrl = playStoreBase;
+    const playStoreUrl = "https://play.google.com/store/apps/details?id=in.factictionary.uno_card_game" + 
+      (code ? "&referrer=room%3D" + encodeURIComponent(code) : "");
+
+    // Android Intent URI: Chrome uses this to launch the installed app directly.
+    // If the app is NOT installed, Chrome automatically redirects to S.browser_fallback_url (Play Store).
+    const intentUrl = "intent://uno.factictionary.in/join?code=" + encodeURIComponent(code) + 
+      "#Intent;scheme=https;package=in.factictionary.uno_card_game;S.browser_fallback_url=" + 
+      encodeURIComponent(playStoreUrl) + ";end;";
+
+    document.getElementById('playStoreLink').href = playStoreUrl;
+
+    function copyRoomCode() {
+      if (!code) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          showToast("📋 Room code " + code + " copied!");
+        }).catch(() => fallbackCopy(code));
+      } else {
+        fallbackCopy(code);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast("📋 Room code " + text + " copied!");
+      } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    function showToast(msg) {
+      document.getElementById('clipboardToast').innerText = msg;
+    }
+
+    function handleLaunchClick(e) {
+      copyRoomCode();
+      // On mobile Android, intentUrl opens the app directly
+      window.location.href = intentUrl;
+    }
 
     if (code) {
       document.getElementById('roomSection').style.display = 'block';
       document.getElementById('roomCodeDisplay').innerText = code;
-      document.getElementById('statusMsg').innerText = "Room code copied to clipboard! Opening Google Play...";
-      
-      // Pass code via referrer parameter for Android Install Referrer
-      finalUrl = playStoreBase + "&referrer=room%3D" + encodeURIComponent(code);
-      document.getElementById('playStoreBtn').href = finalUrl;
+      document.getElementById('statusMsg').innerText = "Opening DUO Cards room " + code + "...";
+      document.getElementById('launchBtn').href = intentUrl;
 
-      // Automatically copy room code to system clipboard
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code).then(() => {
-          document.getElementById('clipboardToast').innerText = "✅ Room code " + code + " copied!";
-        }).catch(() => {});
-      }
-
-      // Automatically bounce to Play Store after 1.5 seconds if opened in browser
+      // Try automatic launch via Android Intent URI
       setTimeout(() => {
-        window.location.href = finalUrl;
-      }, 1500);
+        copyRoomCode();
+        window.location.href = intentUrl;
+      }, 500);
     } else {
       document.getElementById('statusMsg').innerText = "Download or launch DUO Cards on your phone to play.";
+      document.getElementById('launchBtn').href = playStoreUrl;
     }
   </script>
 </body>
