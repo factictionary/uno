@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Join DUO Cards Game Room</title>
+  <meta name="description" content="Join a private game room in DUO Cards: Crazy 8s & Mau Mau!" />
+  <meta name="theme-color" content="#0B1020" />
+  <link rel="icon" type="image/png" href="../assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-0: #070A18;
+      --bg-1: #0B1020;
+      --bg-2: #121838;
+      --text: #F4F6FB;
+      --text-dim: #A9B0C7;
+      --red: #E63946;
+      --yellow: #F2C744;
+      --green: #2ECC71;
+      --blue: #3C8DFF;
+      --grad-cta: linear-gradient(135deg, #2ECC71 0%, #34E08C 100%);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(1000px 700px at 50% 20%, rgba(60, 141, 255, 0.22), transparent 60%),
+        radial-gradient(800px 600px at 20% 80%, rgba(46, 204, 113, 0.15), transparent 55%),
+        var(--bg-0);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 36px 28px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      margin: 0 auto 20px;
+      box-shadow: 0 10px 25px -5px rgba(60, 141, 255, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      display: block;
+    }
+    h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 24px;
+      margin: 0 0 8px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .room-badge {
+      display: inline-block;
+      margin: 16px 0;
+      padding: 10px 20px;
+      background: rgba(242, 199, 68, 0.15);
+      border: 1px solid rgba(242, 199, 68, 0.4);
+      border-radius: 12px;
+      color: var(--yellow);
+      font-family: 'Sora', monospace;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 4px;
+    }
+    p {
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 8px 0 24px;
+    }
+    .btn-play {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: var(--grad-cta);
+      color: #070A18;
+      font-weight: 800;
+      font-size: 16px;
+      padding: 16px 24px;
+      border-radius: 16px;
+      text-decoration: none;
+      box-shadow: 0 10px 25px -5px rgba(46, 204, 113, 0.5);
+      transition: transform 0.15s ease;
+    }
+    .btn-play:active {
+      transform: scale(0.98);
+    }
+    .status-toast {
+      font-size: 12px;
+      color: #34E08C;
+      font-weight: 600;
+      margin-top: 14px;
+      min-height: 18px;
+    }
+    .instructions {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: left;
+    }
+    .instructions ol {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="../assets/icon.png" alt="DUO Cards" class="app-icon" />
+    <h1>DUO CARDS</h1>
+    <div id="roomSection" style="display: none;">
+      <p style="margin-bottom: 4px;">You've been invited to join Room:</p>
+      <div class="room-badge" id="roomCodeDisplay">----</div>
+    </div>
+    <p id="statusMsg">Connecting to game room...</p>
+
+    <a id="playStoreBtn" class="btn-play" href="https://play.google.com/store/apps/details?id=in.factictionary.uno_card_game">
+      <span>▶ PLAY NOW ON ANDROID</span>
+    </a>
+
+    <div class="status-toast" id="clipboardToast"></div>
+
+    <div class="instructions">
+      <strong>How to play:</strong>
+      <ol>
+        <li>Install or open <strong>DUO Cards</strong> from Google Play.</li>
+        <li>Tap <strong>JOIN ROOM</strong> on the home screen.</li>
+        <li>Paste the room code above to start!</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = (params.get('code') || '').trim().toUpperCase();
+
+    const playStoreBase = "https://play.google.com/store/apps/details?id=in.factictionary.uno_card_game";
+    let finalUrl = playStoreBase;
+
+    if (code) {
+      document.getElementById('roomSection').style.display = 'block';
+      document.getElementById('roomCodeDisplay').innerText = code;
+      document.getElementById('statusMsg').innerText = "Room code copied to clipboard! Opening Google Play...";
+      
+      // Pass code via referrer parameter for Android Install Referrer
+      finalUrl = playStoreBase + "&referrer=room%3D" + encodeURIComponent(code);
+      document.getElementById('playStoreBtn').href = finalUrl;
+
+      // Automatically copy room code to system clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          document.getElementById('clipboardToast').innerText = "✅ Room code " + code + " copied!";
+        }).catch(() => {});
+      }
+
+      // Automatically bounce to Play Store after 1.5 seconds if opened in browser
+      setTimeout(() => {
+        window.location.href = finalUrl;
+      }, 1500);
+    } else {
+      document.getElementById('statusMsg').innerText = "Download or launch DUO Cards on your phone to play.";
+    }
+  </script>
+</body>
+</html>

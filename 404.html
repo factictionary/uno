@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>DUO Cards</title>
+  <script>
+    // GitHub Pages 404 handler for deep links
+    const path = window.location.pathname;
+    const search = window.location.search;
+    if (path.includes('join') || search.includes('code=')) {
+      window.location.replace('/join/' + search);
+    } else {
+      window.location.replace('/');
+    }
+  </script>
+</head>
+<body style="background: #070A18; color: white; font-family: sans-serif; text-align: center; padding-top: 50px;">
+  <p>Redirecting to DUO Cards...</p>
+</body>
+</html>

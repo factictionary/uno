@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.factictionary.uno_card_game",
+      "sha256_cert_fingerprints": [
+        "E0:9C:8E:7E:9E:17:C8:EE:15:B7:CE:A7:41:E6:E6:91:71:02:D6:1D:72:F9:33:F6:D1:7F:6F:3E:30:0E:B1:B4"
+      ]
+    }
+  }
+]
